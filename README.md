@@ -1,4 +1,5 @@
 # 🧩 rtfw-sudoku-rs
 
-A simple sudoku library from scratch (checker, solver, etc.)
+![build](https://github.com/RTFW-rs/rtfw-sudoku-rs/actions/workflows/rust.yml/badge.svg)
 
+A simple sudoku library from scratch (checker, solver, etc.)

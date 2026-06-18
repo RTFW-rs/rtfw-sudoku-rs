@@ -5,18 +5,18 @@ pub fn add(left: u64, right: u64) -> u64 {
 }
 
 #[derive(Clone)]
-struct SudokuBoard {
+pub struct SudokuBoard {
     cells: Vec<Option<u8>>,
 }
 
 impl SudokuBoard {
-    fn new_empty() -> Self {
+    pub fn new_empty() -> Self {
         Self {
             cells: vec![None; 9 * 9],
         }
     }
 
-    fn from_definition_str(def: &str) -> Self {
+    pub fn from_definition_str(def: &str) -> Self {
         let mut cells = vec![];
         for line in def.lines() {
             let formatted = line.replace('|', "").replace('-', "");
@@ -33,17 +33,17 @@ impl SudokuBoard {
         Self { cells }
     }
 
-    fn get(&self, x: usize, y: usize) -> Option<u8> {
+    pub fn get(&self, x: usize, y: usize) -> Option<u8> {
         self.cells[y * 9 + x]
     }
 
-    fn get_mut(&mut self, x: usize, y: usize) -> &mut Option<u8> {
+    pub fn get_mut(&mut self, x: usize, y: usize) -> &mut Option<u8> {
         &mut self.cells[y * 9 + x]
     }
 
-    fn solve_greedy(board: SudokuBoard) -> Option<SudokuBoard> {
+    pub fn solve_greedy(board: &SudokuBoard) -> Option<SudokuBoard> {
         if board.is_solved() {
-            return Some(board);
+            return Some(board.clone());
         }
 
         if !board.is_legal() {
@@ -56,7 +56,7 @@ impl SudokuBoard {
                 let mut clone = board.clone();
                 clone.cells[*cell_idx] = Some(digit);
 
-                if let Some(res) = SudokuBoard::solve_greedy(clone) {
+                if let Some(res) = SudokuBoard::solve_greedy(&clone) {
                     return Some(res);
                 }
             }
@@ -74,11 +74,11 @@ impl SudokuBoard {
             .collect()
     }
 
-    fn is_solved(&self) -> bool {
+    pub fn is_solved(&self) -> bool {
         !self.cells.iter().any(|d| d.is_none()) && self.is_legal()
     }
 
-    fn is_legal(&self) -> bool {
+    pub fn is_legal(&self) -> bool {
         self.check_columns() && self.check_rows() && self.check_boxes()
     }
 
@@ -506,7 +506,7 @@ mod tests {
 |345|286|179|
 ";
         let board = SudokuBoard::from_definition_str(input);
-        let result = SudokuBoard::solve_greedy(board);
+        let result = SudokuBoard::solve_greedy(&board);
         assert!(result.is_some());
         assert!(result.unwrap().is_solved());
     }
@@ -527,7 +527,7 @@ mod tests {
 |978|531|642|
 ";
         let board = SudokuBoard::from_definition_str(input);
-        let result = SudokuBoard::solve_greedy(board);
+        let result = SudokuBoard::solve_greedy(&board);
         assert!(result.is_none());
     }
 
@@ -547,7 +547,7 @@ mod tests {
 |   | 8 | 79|
 ";
         let board = SudokuBoard::from_definition_str(input);
-        let result = SudokuBoard::solve_greedy(board);
+        let result = SudokuBoard::solve_greedy(&board);
         assert!(result.is_some());
         assert!(result.unwrap().is_solved());
     }

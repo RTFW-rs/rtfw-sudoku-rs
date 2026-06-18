@@ -4,6 +4,7 @@ pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }
 
+#[derive(Clone)]
 struct SudokuBoard {
     cells: Vec<Option<u8>>,
 }
@@ -38,6 +39,39 @@ impl SudokuBoard {
 
     fn get_mut(&mut self, x: usize, y: usize) -> &mut Option<u8> {
         &mut self.cells[y * 9 + x]
+    }
+
+    fn solve_greedy(board: SudokuBoard, unsolved: &[usize]) -> Option<SudokuBoard> {
+        if board.is_solved() {
+            return Some(board);
+        }
+
+        if !board.is_legal() {
+            return None;
+        }
+
+        if let Some(cell_idx) = unsolved.first() {
+            for digit in 1..=9 {
+                let mut clone = board.clone();
+                clone.cells[*cell_idx] = Some(digit);
+                let remaining_cells = &unsolved[1..];
+
+                if let Some(res) = SudokuBoard::solve_greedy(clone, remaining_cells) {
+                    return Some(res);
+                }
+            }
+        }
+
+        None
+    }
+
+    fn get_empty_cells(&self) -> Vec<usize> {
+        self.cells
+            .iter()
+            .enumerate()
+            .filter(|(_, d)| d.is_none())
+            .map(|(i, _)| i)
+            .collect()
     }
 
     fn is_solved(&self) -> bool {

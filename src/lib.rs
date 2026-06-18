@@ -41,7 +41,7 @@ impl SudokuBoard {
         &mut self.cells[y * 9 + x]
     }
 
-    fn solve_greedy(board: SudokuBoard, unsolved: &[usize]) -> Option<SudokuBoard> {
+    fn solve_greedy(board: SudokuBoard) -> Option<SudokuBoard> {
         if board.is_solved() {
             return Some(board);
         }
@@ -50,13 +50,13 @@ impl SudokuBoard {
             return None;
         }
 
+        let unsolved = board.get_empty_cells();
         if let Some(cell_idx) = unsolved.first() {
             for digit in 1..=9 {
                 let mut clone = board.clone();
                 clone.cells[*cell_idx] = Some(digit);
-                let remaining_cells = &unsolved[1..];
 
-                if let Some(res) = SudokuBoard::solve_greedy(clone, remaining_cells) {
+                if let Some(res) = SudokuBoard::solve_greedy(clone) {
                     return Some(res);
                 }
             }
@@ -423,5 +423,132 @@ mod tests {
         assert_eq!(input, board.to_string());
         assert_eq!(false, board.is_legal());
         assert_eq!(false, board.is_solved());
+    }
+
+    #[test]
+    fn test_get_empty_cells_empty_board() {
+        let board = SudokuBoard::new_empty();
+        let empty = board.get_empty_cells();
+        assert_eq!(81, empty.len());
+        assert_eq!((0..81).collect::<Vec<usize>>(), empty);
+    }
+
+    #[test]
+    fn test_get_empty_cells_full_board() {
+        let input = "
+|534|678|912|
+|672|195|348|
+|198|342|567|
+|---|---|---|
+|859|761|423|
+|426|853|791|
+|713|924|856|
+|---|---|---|
+|961|537|284|
+|287|419|635|
+|345|286|179|
+";
+        let board = SudokuBoard::from_definition_str(input);
+        assert!(board.get_empty_cells().is_empty());
+    }
+
+    #[test]
+    fn test_get_empty_cells_partial_board() {
+        let input = "
+|53 | 7 |   |
+|6  |195|   |
+| 98|   | 6 |
+|---|---|---|
+|8  | 6 |  3|
+|4  |8 3|  1|
+|7  | 2 |  6|
+|---|---|---|
+| 6 |   |28 |
+|   |419|  5|
+|   | 8 | 79|
+";
+        let board = SudokuBoard::from_definition_str(input);
+        let empty = board.get_empty_cells();
+        assert_eq!(51, empty.len());
+        // Known empty cells
+        assert!(empty.contains(&2)); // row 0, col 2: |53 |
+        assert!(empty.contains(&18)); // row 2, col 0: | 98|
+        assert!(empty.contains(&63)); // row 7, col 0: |   |
+        // Known filled cells must not appear
+        assert!(!empty.contains(&0)); // '5' at (0,0)
+        assert!(!empty.contains(&4)); // '7' at (4,0)
+        assert!(!empty.contains(&80)); // '9' at (8,8)
+    }
+
+    #[test]
+    fn test_get_empty_cells_single_filled_cell() {
+        let mut board = SudokuBoard::new_empty();
+        *board.get_mut(4, 4) = Some(5);
+        let empty = board.get_empty_cells();
+        assert_eq!(80, empty.len());
+        let center_idx = 4 * 9 + 4; // 40
+        assert!(!empty.contains(&center_idx));
+    }
+
+    #[test]
+    fn test_solve_greedy_already_solved() {
+        let input = "
+|534|678|912|
+|672|195|348|
+|198|342|567|
+|---|---|---|
+|859|761|423|
+|426|853|791|
+|713|924|856|
+|---|---|---|
+|961|537|284|
+|287|419|635|
+|345|286|179|
+";
+        let board = SudokuBoard::from_definition_str(input);
+        let result = SudokuBoard::solve_greedy(board);
+        assert!(result.is_some());
+        assert!(result.unwrap().is_solved());
+    }
+
+    #[test]
+    fn test_solve_greedy_illegal_board_returns_none() {
+        let input = "
+|133|456|789|
+|456|789|123|
+|789|123|456|
+|---|---|---|
+|214|365|897|
+|365|897|214|
+|897|214|365|
+|---|---|---|
+|531|642|978|
+|642|978|531|
+|978|531|642|
+";
+        let board = SudokuBoard::from_definition_str(input);
+        let result = SudokuBoard::solve_greedy(board);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_solve_greedy_partial_board() {
+        let input = "
+|53 | 7 |   |
+|6  |195|   |
+| 98|   | 6 |
+|---|---|---|
+|8  | 6 |  3|
+|4  |8 3|  1|
+|7  | 2 |  6|
+|---|---|---|
+| 6 |   |28 |
+|   |419|  5|
+|   | 8 | 79|
+";
+        let board = SudokuBoard::from_definition_str(input);
+        let result = SudokuBoard::solve_greedy(board);
+        assert!(result.is_some());
+        assert!(result.unwrap().is_solved());
     }
 }

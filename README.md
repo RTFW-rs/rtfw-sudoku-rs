@@ -46,3 +46,21 @@ Empty Sudoku:
 |   |   |   |
 |   |   |   |
 ```
+
+## Benchmarks
+
+Measured with [Criterion](https://github.com/bheisler/criterion.rs) on the greedy backtracking solver (`cargo bench --no-default-features`).
+
+| Board | Empty cells | Mean | Std. Dev. | Median |
+|-------|-------------|------|-----------|--------|
+| Easy  | 51          | 15.18 ms | 619 µs | 14.93 ms |
+| Hard  | 30          | 11.82 µs | 718 ns | 11.69 µs |
+
+The "hard" label refers to hint density — more given digits constrain the search space heavily, so the solver backtracks far less despite the puzzle being harder for a human.
+
+To reproduce:
+
+```sh
+cargo bench --no-default-features
+# HTML reports: target/criterion/report/index.html
+```

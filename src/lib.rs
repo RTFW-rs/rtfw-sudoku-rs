@@ -1,4 +1,5 @@
 use std::fmt;
+use std::io::Write;
 
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
@@ -42,6 +43,32 @@ impl SudokuBoard {
     }
 
     pub fn solve_greedy(board: &SudokuBoard) -> Option<SudokuBoard> {
+        let mut paths: u64 = 0;
+        let unsolved = board.get_empty_cells().len();
+        let total_paths: f64 = 9_f64.powi(unsolved as i32);
+        println!("total paths to explore: {:.2e}", total_paths);
+        let result = Self::solve_greedy_inner(board, &mut paths);
+        eprintln!();
+        result
+    }
+
+    fn format_thousands(n: u64) -> String {
+        let s = n.to_string();
+        let mut out = String::with_capacity(s.len() + s.len() / 3);
+        for (i, c) in s.chars().enumerate() {
+            if i != 0 && (s.len() - i) % 3 == 0 {
+                out.push(',');
+            }
+            out.push(c);
+        }
+        out
+    }
+
+    fn solve_greedy_inner(board: &SudokuBoard, paths: &mut u64) -> Option<SudokuBoard> {
+        *paths += 1;
+        eprint!("\riterations: {}", Self::format_thousands(*paths));
+        let _ = std::io::stderr().flush();
+
         if board.is_solved() {
             return Some(board.clone());
         }
@@ -51,12 +78,13 @@ impl SudokuBoard {
         }
 
         let unsolved = board.get_empty_cells();
+
         if let Some(cell_idx) = unsolved.first() {
             for digit in 1..=9 {
                 let mut clone = board.clone();
                 clone.cells[*cell_idx] = Some(digit);
 
-                if let Some(res) = SudokuBoard::solve_greedy(&clone) {
+                if let Some(res) = Self::solve_greedy_inner(&clone, paths) {
                     return Some(res);
                 }
             }

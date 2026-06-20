@@ -1,6 +1,9 @@
 use std::fmt;
 use std::io::Write;
 
+use rand::RngExt;
+use rand::seq::IndexedRandom;
+
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }
@@ -32,6 +35,30 @@ impl SudokuBoard {
         }
 
         Self { cells }
+    }
+
+    pub fn generate(hints: usize) -> SudokuBoard {
+        let mut sudoku = SudokuBoard::new_empty();
+        let mut rng = rand::rng();
+
+        for _ in 0..hints {
+            let unsolved = sudoku.get_empty_cells();
+
+            if let Some(idx) = unsolved.choose(&mut rng) {
+                loop {
+                    let digit = rng.random_range(1..=9) as u8;
+                    sudoku.cells[*idx] = Some(digit);
+
+                    if sudoku.is_legal() {
+                        break;
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+
+        sudoku
     }
 
     pub fn get(&self, x: usize, y: usize) -> Option<u8> {

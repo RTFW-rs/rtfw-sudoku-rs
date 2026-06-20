@@ -15,7 +15,10 @@ fn main() {
 |   |   |   |
 |   |   |   |
 ";
-    let sudoku = SudokuBoard::from_definition_str(raw_board);
+
+    let sudoku = SudokuBoard::generate(10);
+    // let sudoku = SudokuBoard::from_definition_str(raw_board);
+
     let solved = SudokuBoard::solve_greedy(&sudoku).unwrap();
     println!("{}", sudoku);
     println!("{}", solved);

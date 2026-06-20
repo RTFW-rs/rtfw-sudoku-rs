@@ -71,10 +71,14 @@ impl SudokuBoard {
 
     pub fn solve_greedy(board: &SudokuBoard) -> Option<SudokuBoard> {
         let mut paths: u64 = 0;
-        let unsolved = board.get_empty_cells().len();
-        let total_paths: f64 = 9_f64.powi(unsolved as i32);
-        println!("total paths to explore: {:.2e}", total_paths);
+        #[cfg(feature = "progress")]
+        {
+            let unsolved = board.get_empty_cells().len();
+            let total_paths: f64 = 9_f64.powi(unsolved as i32);
+            println!("total paths to explore: {:.2e}", total_paths);
+        }
         let result = Self::solve_greedy_inner(board, &mut paths);
+        #[cfg(feature = "progress")]
         eprintln!();
         result
     }
@@ -93,8 +97,11 @@ impl SudokuBoard {
 
     fn solve_greedy_inner(board: &SudokuBoard, paths: &mut u64) -> Option<SudokuBoard> {
         *paths += 1;
-        eprint!("\riterations: {}", Self::format_thousands(*paths));
-        let _ = std::io::stderr().flush();
+        #[cfg(feature = "progress")]
+        {
+            eprint!("\riterations: {}", Self::format_thousands(*paths));
+            let _ = std::io::stderr().flush();
+        }
 
         if board.is_solved() {
             return Some(board.clone());
